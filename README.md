@@ -115,9 +115,9 @@ Veja [docs/PRODUCT.md](docs/PRODUCT.md), [docs/ARCHITECTURE.md](docs/ARCHITECTUR
 
 ## Status
 
-**v0.1 — foundation**
+**v0.2 — operational core**
 
-A base do monorepo, os contratos do domínio e o simulador de telemetria estão em construção. O objetivo imediato é entregar a vertical slice executável antes de expandir integrações.
+A vertical slice cobre telemetria, saúde, abertura de incidente, automação de resposta e lifecycle operacional. A arquitetura segue um monólito modular registrado em ADR, e o dashboard já possui um sistema visual próprio documentado em [docs/BRAND.md](docs/BRAND.md).
 
 ## Origem e créditos
 

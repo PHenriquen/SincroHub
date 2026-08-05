@@ -1,23 +1,32 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import type {
+  Asset,
   AssetHealth,
-  HealthStatus,
-  Incident,
   TelemetryReading
 } from "@orbital/contracts";
-import { randomUUID } from "node:crypto";
-
-const clamp = (value: number) => Math.min(100, Math.max(0, value));
+import { AutomationsService } from "../automations/automations.service";
+import { calculateHealthScore, classifyHealth } from "../domain/health-score";
+import { IncidentsService } from "../incidents/incidents.service";
 
 @Injectable()
 export class TelemetryService {
   private readonly assets = new Map<string, AssetHealth>();
-  private readonly incidents: Incident[] = [];
+  private readonly registry = new Map<string, Asset>([["press-01", {
+    id: "press-01",
+    name: "Hydraulic Press 01",
+    kind: "machine",
+    location: "Assembly / Line A",
+    status: "online"
+  }]]);
+
+  constructor(
+    private readonly incidents: IncidentsService,
+    private readonly automations: AutomationsService
+  ) {}
 
   ingest(reading: TelemetryReading): AssetHealth {
-    const score = this.calculateHealth(reading);
-    const status: HealthStatus =
-      score < 45 ? "critical" : score < 70 ? "attention" : "healthy";
+    const score = calculateHealthScore(reading);
+    const status = classifyHealth(score);
 
     const health: AssetHealth = {
       assetId: reading.assetId,
@@ -29,21 +38,19 @@ export class TelemetryService {
 
     this.assets.set(reading.assetId, health);
 
-    const alreadyOpen = this.incidents.some(
-      (incident) =>
-        incident.assetId === reading.assetId && incident.status !== "resolved"
-    );
-
-    if (status === "critical" && !alreadyOpen) {
-      this.incidents.unshift({
-        id: randomUUID(),
-        assetId: reading.assetId,
-        title: `Saúde crítica detectada em ${reading.assetId}`,
-        severity: "critical",
-        status: "open",
-        healthScore: score,
-        openedAt: health.evaluatedAt
+    if (!this.registry.has(reading.assetId)) {
+      this.registry.set(reading.assetId, {
+        id: reading.assetId,
+        name: reading.assetId,
+        kind: "machine",
+        location: "Unassigned",
+        status: "online"
       });
+    }
+
+    if (status === "critical") {
+      const incident = this.incidents.openCritical(reading.assetId, score);
+      this.automations.onIncidentOpened(incident);
     }
 
     return health;
@@ -57,19 +64,10 @@ export class TelemetryService {
     return health;
   }
 
-  listIncidents(): Incident[] {
-    return this.incidents;
-  }
-
-  private calculateHealth(reading: TelemetryReading): number {
-    const temperatureHealth = 100 - clamp(((reading.temperatureC - 25) / 55) * 100);
-    const vibrationHealth = 100 - clamp((reading.vibrationMmS / 12) * 100);
-    const currentHealth = 100 - clamp((reading.currentA / 40) * 100);
-
-    return Math.round(
-      temperatureHealth * 0.3 +
-      vibrationHealth * 0.4 +
-      currentHealth * 0.3
-    );
+  listAssets() {
+    return Array.from(this.registry.values()).map((asset) => ({
+      ...asset,
+      health: this.assets.get(asset.id)
+    }));
   }
 }

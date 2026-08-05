@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Orbital Command symbol</title>
+  <defs><radialGradient id="core"><stop stop-color="#9af0ff"/><stop offset="1" stop-color="#4c7dff"/></radialGradient></defs>
+  <g fill="none" stroke-linecap="round">
+    <ellipse cx="128" cy="128" rx="104" ry="45" stroke="#5de3ff" stroke-width="5" transform="rotate(-24 128 128)" opacity=".75"/>
+    <ellipse cx="128" cy="128" rx="104" ry="45" stroke="#4c7dff" stroke-width="5" transform="rotate(54 128 128)" opacity=".65"/>
+  </g>
+  <circle cx="128" cy="128" r="32" fill="url(#core)"/>
+  <circle cx="35" cy="94" r="10" fill="#5de3ff"/>
+  <circle cx="213" cy="80" r="10" fill="#4c7dff"/>
+  <circle cx="194" cy="199" r="10" fill="#9b7bff"/>
+</svg>
