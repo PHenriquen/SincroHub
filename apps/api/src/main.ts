@@ -1,0 +1,15 @@
+import "reflect-metadata";
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.enableCors();
+  app.setGlobalPrefix("api/v1");
+
+  const port = Number(process.env.API_PORT ?? 3333);
+  await app.listen(port);
+  console.log(`Orbital API online at http://localhost:${port}/api/v1`);
+}
+
+void bootstrap();
