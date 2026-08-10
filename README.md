@@ -1,8 +1,8 @@
-# OPERALINK
+# SINCROHUB
 
 > **Sistema Integrado de Operações e Monitoramento**
 
-O **OperaLink** conecta sinais dispersos - telemetria, webhooks, eventos de software e mensagens operacionais - a um fluxo único de monitoramento, incidentes, responsáveis, automações e histórico auditável.
+O **SincroHub** sincroniza sinais dispersos - telemetria, webhooks, eventos de software e mensagens operacionais - em um hub único de monitoramento, incidentes, responsáveis, automações e histórico auditável.
 
 O projeto reúne aprendizados de três frentes anteriores:
 
@@ -23,7 +23,7 @@ Equipes normalmente descobrem problemas em ferramentas diferentes, recebem alert
 - se o problema já ocorreu antes;
 - quais ações podem ser automatizadas.
 
-O **OperaLink** reúne esse fluxo em uma única operação monitorada e rastreável.
+O **SincroHub** reúne e sincroniza esse fluxo em uma única operação monitorada e rastreável.
 
 ## Fluxo principal
 
@@ -41,8 +41,8 @@ Exemplos de fontes:
 
 ## Diferenciais
 
-- **Operação integrada:** software, serviços, processos e equipamentos no mesmo modelo.
-- **Monitoramento unificado:** telemetria e eventos convergem para uma visão operacional única.
+- **Hub operacional único:** software, serviços, processos e equipamentos no mesmo modelo.
+- **Sincronização de contexto:** telemetria e eventos convergem para uma visão operacional única.
 - **Modo simulado:** demonstração completa sem depender de hardware.
 - **Incidentes explicáveis:** cada alerta registra a regra, os sinais e a linha do tempo.
 - **Automação segura:** ações rastreáveis, idempotentes e com aprovação quando necessário.
@@ -105,9 +105,9 @@ Os componentes serão normalizados antes do cálculo; os pesos poderão ser conf
 
 ## Identidade
 
-- **Nome:** OperaLink
+- **Nome:** SincroHub
 - **Nome completo:** Sistema Integrado de Operações e Monitoramento
-- **Conceito:** conectar dados, ativos, sistemas e respostas em um fluxo operacional único
+- **Conceito:** sincronizar dados, ativos, sistemas e respostas em um hub operacional único
 - **Tom:** técnico, industrial, preciso e apresentável
 - **Direção visual:** interface operacional escura, legível e orientada a estado, telemetria e incidentes
 
