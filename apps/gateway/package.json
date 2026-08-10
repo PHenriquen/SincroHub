@@ -1,5 +1,5 @@
 {
-  "name": "@orbital/gateway",
+  "name": "@sincrohub/gateway",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@orbital/contracts": "0.1.0"
+    "@sincrohub/contracts": "0.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

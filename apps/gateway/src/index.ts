@@ -1,6 +1,6 @@
-import type { TelemetryReading } from "@orbital/contracts";
+import type { TelemetryReading } from "@sincrohub/contracts";
 
-const apiUrl = process.env.ORBITAL_API_URL ?? "http://localhost:3333/api/v1";
+const apiUrl = process.env.SINCROHUB_API_URL ?? "http://localhost:3333/api/v1";
 const assetId = process.env.GATEWAY_ASSET_ID ?? "press-01";
 const intervalMs = Number(process.env.GATEWAY_INTERVAL_MS ?? 2000);
 
@@ -45,6 +45,6 @@ async function publish() {
   }
 }
 
-console.log(`Orbital Gateway simulating ${assetId} every ${intervalMs}ms`);
+console.log(`SincroHub Gateway simulating ${assetId} every ${intervalMs}ms`);
 void publish();
 setInterval(() => void publish(), intervalMs);

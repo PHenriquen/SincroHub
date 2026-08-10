@@ -4,7 +4,7 @@ import type {
   HealthStatus,
   Incident,
   TelemetryReading
-} from "@orbital/contracts";
+} from "@sincrohub/contracts";
 import { randomUUID } from "node:crypto";
 
 const clamp = (value: number) => Math.min(100, Math.max(0, value));
@@ -30,8 +30,7 @@ export class TelemetryService {
     this.assets.set(reading.assetId, health);
 
     const alreadyOpen = this.incidents.some(
-      (incident) =>
-        incident.assetId === reading.assetId && incident.status !== "resolved"
+      (incident) => incident.assetId === reading.assetId && incident.status !== "resolved"
     );
 
     if (status === "critical" && !alreadyOpen) {

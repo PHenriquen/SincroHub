@@ -1,8 +1,8 @@
 {
-  "name": "operalink",
+  "name": "sincrohub",
   "version": "0.1.0",
   "private": true,
-  "description": "Integrated operations and monitoring system for telemetry, incidents and automation.",
+  "description": "Integrated operations and monitoring hub for telemetry, incidents and automation.",
   "license": "MIT",
   "engines": {
     "node": ">=22.0.0",
@@ -13,12 +13,12 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev -w @orbital/api",
-    "dev:api": "npm run dev -w @orbital/api",
-    "dev:web": "npm run dev -w @orbital/web",
-    "dev:gateway": "npm run dev -w @orbital/gateway",
-    "build": "npm run build -w @orbital/contracts && npm run build -w @orbital/api && npm run build -w @orbital/gateway && npm run build -w @orbital/web",
-    "typecheck": "npm run build -w @orbital/contracts && npm run typecheck --workspaces --if-present",
+    "dev": "npm run dev -w @sincrohub/api",
+    "dev:api": "npm run dev -w @sincrohub/api",
+    "dev:web": "npm run dev -w @sincrohub/web",
+    "dev:gateway": "npm run dev -w @sincrohub/gateway",
+    "build": "npm run build -w @sincrohub/contracts && npm run build -w @sincrohub/api && npm run build -w @sincrohub/gateway && npm run build -w @sincrohub/web",
+    "typecheck": "npm run build -w @sincrohub/contracts && npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "check": "npm run typecheck && npm run test"
   },

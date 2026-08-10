@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_USER: orbital
-      POSTGRES_PASSWORD: orbital
-      POSTGRES_DB: orbital
+      POSTGRES_USER: sincrohub
+      POSTGRES_PASSWORD: sincrohub
+      POSTGRES_DB: sincrohub
     ports:
       - "5432:5432"
     volumes:
-      - orbital_postgres:/var/lib/postgresql/data
+      - sincrohub_postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U orbital"]
+      test: ["CMD-SHELL", "pg_isready -U sincrohub"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -20,8 +20,8 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - orbital_redis:/data
+      - sincrohub_redis:/data
 
 volumes:
-  orbital_postgres:
-  orbital_redis:
+  sincrohub_postgres:
+  sincrohub_redis:

@@ -9,7 +9,7 @@ async function bootstrap() {
 
   const port = Number(process.env.API_PORT ?? 3333);
   await app.listen(port);
-  console.log(`Orbital API online at http://localhost:${port}/api/v1`);
+  console.log(`SincroHub API online at http://localhost:${port}/api/v1`);
 }
 
 void bootstrap();

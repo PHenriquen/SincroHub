@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
-import { telemetryReadingSchema } from "@orbital/contracts";
+import { telemetryReadingSchema } from "@sincrohub/contracts";
 import { TelemetryService } from "./telemetry.service";
 
 @Controller()

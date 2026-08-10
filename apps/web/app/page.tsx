@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { AssetHealth, Incident } from "@orbital/contracts";
+import type { AssetHealth, Incident } from "@sincrohub/contracts";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333/api/v1";
 
@@ -21,7 +21,7 @@ const initial: AssetHealth = {
   }
 };
 
-export default function CommandCenter() {
+export default function OperationsHub() {
   const [health, setHealth] = useState<AssetHealth>(initial);
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [connected, setConnected] = useState(false);
@@ -52,20 +52,20 @@ export default function CommandCenter() {
       <header>
         <div className="brand">
           <span className="mark"><i /><i /><i /></span>
-          <div><strong>ORBITAL</strong><span>COMMAND</span></div>
+          <div><strong>SINCRO</strong><span>HUB</span></div>
         </div>
         <div className={connected ? "connection online" : "connection"}>
-          <b /> {connected ? "CORE ONLINE" : "DEMO MODE"}
+          <b /> {connected ? "HUB ONLINE" : "DEMO MODE"}
         </div>
       </header>
 
       <section className="hero">
         <div>
-          <p className="eyebrow">OPERATIONAL OVERVIEW</p>
-          <h1>Everything in orbit.<br />One place in command.</h1>
-          <p className="subtitle">Telemetria, incidentes e automações reunidos em uma única visão operacional.</p>
+          <p className="eyebrow">VISÃO OPERACIONAL</p>
+          <h1>Sinais sincronizados.<br />Operação em um só lugar.</h1>
+          <p className="subtitle">Telemetria, incidentes e automações reunidos em uma visão operacional única e auditável.</p>
         </div>
-        <div className="orbit" aria-label="Orbital Command core">
+        <div className="orbit" aria-label="SincroHub operational core">
           <div className="ring ringOne" />
           <div className="ring ringTwo" />
           <div className="core">{health.score}<small>HEALTH</small></div>
@@ -99,10 +99,10 @@ export default function CommandCenter() {
         </article>
 
         <article>
-          <div className="cardTitle"><span>MISSION LOG</span><em>LIVE</em></div>
+          <div className="cardTitle"><span>EVENT LOG</span><em>LIVE</em></div>
           <ul className="log">
             <li><time>NOW</time> Telemetry evaluated for {health.assetId}</li>
-            <li><time>CORE</time> Health model synchronized</li>
+            <li><time>HUB</time> Health model synchronized</li>
             <li><time>SYS</time> Gateway source: {health.reading.source}</li>
           </ul>
         </article>

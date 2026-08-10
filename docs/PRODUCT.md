@@ -2,7 +2,7 @@
 
 ## Visão
 
-O **OperaLink - Sistema Integrado de Operações e Monitoramento** é uma central operacional capaz de observar sistemas digitais e ativos físicos, interpretar eventos e coordenar a resposta de equipes em um fluxo único e auditável.
+O **SincroHub - Sistema Integrado de Operações e Monitoramento** é um hub operacional capaz de observar sistemas digitais e ativos físicos, sincronizar eventos e coordenar a resposta de equipes em um fluxo único e auditável.
 
 ## Usuários iniciais
 
@@ -25,7 +25,7 @@ Um **Asset** representa qualquer coisa observável: serviço, API, máquina, sen
 
 ## Princípios
 
-- integração entre sinais físicos e digitais;
+- sincronização entre sinais físicos e digitais;
 - informação útil acima de volume de alertas;
 - simulação como parte oficial do produto;
 - automações transparentes e reversíveis;
