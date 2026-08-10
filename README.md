@@ -1,10 +1,10 @@
-# ORBITAL COMMAND
+# OPERALINK
 
-> Unified operations, observability and automation platform.
+> **Sistema Integrado de Operações e Monitoramento**
 
-O **Orbital Command** transforma sinais dispersos — telemetria, webhooks, eventos de software e mensagens operacionais — em incidentes priorizados, responsáveis, automações e histórico auditável.
+O **OperaLink** conecta sinais dispersos - telemetria, webhooks, eventos de software e mensagens operacionais - a um fluxo único de monitoramento, incidentes, responsáveis, automações e histórico auditável.
 
-Ele nasce da combinação de três ideias complementares:
+O projeto reúne aprendizados de três frentes anteriores:
 
 - **SyncHub:** integrações, rastreabilidade e automações;
 - **SVI:** telemetria industrial, sensores, Arduino e simulação;
@@ -23,7 +23,7 @@ Equipes normalmente descobrem problemas em ferramentas diferentes, recebem alert
 - se o problema já ocorreu antes;
 - quais ações podem ser automatizadas.
 
-O Orbital Command reúne esse fluxo em uma única central operacional.
+O **OperaLink** reúne esse fluxo em uma única operação monitorada e rastreável.
 
 ## Fluxo principal
 
@@ -41,12 +41,12 @@ Exemplos de fontes:
 
 ## Diferenciais
 
-- **Centro de comando único:** software, operação e equipamentos no mesmo modelo.
+- **Operação integrada:** software, serviços, processos e equipamentos no mesmo modelo.
+- **Monitoramento unificado:** telemetria e eventos convergem para uma visão operacional única.
 - **Modo simulado:** demonstração completa sem depender de hardware.
 - **Incidentes explicáveis:** cada alerta registra a regra, os sinais e a linha do tempo.
 - **Automação segura:** ações rastreáveis, idempotentes e com aprovação quando necessário.
 - **Arquitetura orientada a eventos:** preparada para filas, workers e integrações.
-- **Identidade visual própria:** experiência de central espacial sem perder a clareza empresarial.
 
 ## Arquitetura inicial
 
@@ -105,17 +105,17 @@ Os componentes serão normalizados antes do cálculo; os pesos poderão ser conf
 
 ## Identidade
 
-- **Nome:** Orbital Command
-- **Conceito:** diferentes sistemas orbitando um núcleo operacional
-- **Paleta:** espaço profundo, grafite, azul e ciano
-- **Tom:** preciso, confiável, técnico e futurista
-- **Símbolo:** três núcleos conectados formando discretamente uma órbita
+- **Nome:** OperaLink
+- **Nome completo:** Sistema Integrado de Operações e Monitoramento
+- **Conceito:** conectar dados, ativos, sistemas e respostas em um fluxo operacional único
+- **Tom:** técnico, industrial, preciso e apresentável
+- **Direção visual:** interface operacional escura, legível e orientada a estado, telemetria e incidentes
 
 Veja [docs/PRODUCT.md](docs/PRODUCT.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Status
 
-**v0.1 — foundation**
+**v0.1 - foundation**
 
 A base do monorepo, os contratos do domínio e o simulador de telemetria estão em construção. O objetivo imediato é entregar a vertical slice executável antes de expandir integrações.
 
@@ -130,4 +130,4 @@ Nenhum dos repositórios originais é alterado por este projeto.
 
 ## Licença
 
-MIT — consulte [LICENSE](LICENSE).
+MIT - consulte [LICENSE](LICENSE).
