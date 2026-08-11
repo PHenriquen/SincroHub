@@ -6,13 +6,24 @@ import type {
   TelemetryReading
 } from "@sincrohub/contracts";
 import { randomUUID } from "node:crypto";
+import { AnomalyDetector, type AnomalyResult } from "../analytics/anomaly-detector";
+import {
+  WindowAggregator,
+  type TelemetrySample
+} from "../data/window-aggregator";
 
 const clamp = (value: number) => Math.min(100, Math.max(0, value));
+const MAX_ANALYTICS_SAMPLES = 1_000;
+const BASELINE_SAMPLES = 10;
 
 @Injectable()
 export class TelemetryService {
   private readonly assets = new Map<string, AssetHealth>();
   private readonly incidents: Incident[] = [];
+  private readonly analyticsSamples = new Map<string, TelemetrySample[]>();
+  private readonly anomalyDetectors = new Map<string, AnomalyDetector>();
+  private readonly latestAnomalies = new Map<string, AnomalyResult>();
+  private readonly aggregator = new WindowAggregator(60_000);
 
   ingest(reading: TelemetryReading): AssetHealth {
     const score = this.calculateHealth(reading);
@@ -28,6 +39,7 @@ export class TelemetryService {
     };
 
     this.assets.set(reading.assetId, health);
+    this.recordAnalytics(reading);
 
     const alreadyOpen = this.incidents.some(
       (incident) => incident.assetId === reading.assetId && incident.status !== "resolved"
@@ -56,8 +68,64 @@ export class TelemetryService {
     return health;
   }
 
+  analytics(assetId: string) {
+    const samples = this.analyticsSamples.get(assetId);
+    if (!samples?.length) {
+      throw new NotFoundException(`No analytics data found for ${assetId}`);
+    }
+
+    return {
+      assetId,
+      sampleCount: samples.length,
+      modelReady: this.anomalyDetectors.has(assetId),
+      latestAnomaly: this.latestAnomalies.get(assetId) ?? null,
+      windows: this.aggregator.aggregate(samples)
+    };
+  }
+
   listIncidents(): Incident[] {
     return this.incidents;
+  }
+
+  private recordAnalytics(reading: TelemetryReading): void {
+    const sample: TelemetrySample = {
+      assetId: reading.assetId,
+      timestamp: Date.parse(reading.timestamp),
+      temperature: reading.temperatureC,
+      vibration: reading.vibrationMmS,
+      current: reading.currentA
+    };
+
+    const samples = this.analyticsSamples.get(reading.assetId) ?? [];
+    samples.push(sample);
+    if (samples.length > MAX_ANALYTICS_SAMPLES) {
+      samples.splice(0, samples.length - MAX_ANALYTICS_SAMPLES);
+    }
+    this.analyticsSamples.set(reading.assetId, samples);
+
+    let detector = this.anomalyDetectors.get(reading.assetId);
+    if (!detector && samples.length >= BASELINE_SAMPLES) {
+      detector = new AnomalyDetector();
+      detector.fit(
+        samples.slice(0, BASELINE_SAMPLES).map((item) => ({
+          temperature: item.temperature,
+          vibration: item.vibration,
+          current: item.current
+        }))
+      );
+      this.anomalyDetectors.set(reading.assetId, detector);
+    }
+
+    if (detector) {
+      this.latestAnomalies.set(
+        reading.assetId,
+        detector.predict({
+          temperature: sample.temperature,
+          vibration: sample.vibration,
+          current: sample.current
+        })
+      );
+    }
   }
 
   private calculateHealth(reading: TelemetryReading): number {
