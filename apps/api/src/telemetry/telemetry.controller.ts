@@ -17,6 +17,11 @@ export class TelemetryController {
     return this.telemetry.latest(assetId);
   }
 
+  @Get("assets/:assetId/analytics")
+  analytics(@Param("assetId") assetId: string) {
+    return this.telemetry.analytics(assetId);
+  }
+
   @Get("incidents")
   incidents() {
     return this.telemetry.listIncidents();
