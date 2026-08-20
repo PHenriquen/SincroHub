@@ -1,162 +1,127 @@
-# SINCROHUB
+# SincroHub
 
-> **Sistema Integrado de Operações e Monitoramento**
+SincroHub é um projeto de monitoramento operacional que junta telemetria, incidentes e ações em um mesmo fluxo.
 
-O **SincroHub** sincroniza sinais dispersos — telemetria, webhooks, eventos de software e mensagens operacionais — em um hub único de monitoramento, incidentes, responsáveis, automações e histórico auditável.
+A ideia nasceu depois de trabalhar em projetos separados de integração e monitoramento industrial. Em vez de criar mais um dashboard que só exibe gráficos, quero que o sistema consiga acompanhar o caminho completo de um sinal: **receber o dado, entender o estado, abrir um incidente quando necessário e registrar o que foi feito depois.**
 
-O projeto reúne aprendizados de três frentes anteriores:
-
-- **SyncHub:** integrações, rastreabilidade e automações;
-- **SVI:** telemetria industrial, sensores, Arduino e simulação;
-- **Nexus Ops:** observabilidade, incidentes, métricas e resposta operacional.
-
-Os projetos de origem permanecem independentes. Este repositório possui arquitetura, domínio e evolução próprios.
-
-## Problema
-
-Equipes normalmente descobrem problemas em ferramentas diferentes, recebem alertas sem contexto e perdem tempo até entender o que aconteceu, qual o impacto, quem deve agir, quais dados ajudam no diagnóstico e quais respostas podem ser automatizadas.
-
-O SincroHub centraliza esse fluxo e adiciona uma camada técnica de **backend, streaming de dados, observabilidade, analytics/ML e infraestrutura cloud**.
+> Estado atual: `v0.1`. A base do monorepo existe, mas o projeto ainda está sendo fechado como uma vertical slice antes de crescer em infraestrutura.
 
 ## Fluxo principal
 
 ```text
-Fonte -> Ingestão -> Normalização -> Stream/Fila -> Agregação -> Regra/ML
-                                                            |
-                                                            v
-                                                     Incidente -> Ação
-                                                            |
-                                                            v
-                                                   Auditoria/Histórico
+fonte de dados
+     ↓
+gateway / ingestão
+     ↓
+normalização
+     ↓
+telemetria e agregação
+     ↓
+regra / análise
+     ↓
+incidente
+     ↓
+ação + histórico
 ```
 
-Exemplos de fontes:
+Um exemplo simples é uma máquina enviando temperatura, vibração e corrente. O gateway entrega as leituras para a API, o backend mantém o histórico e calcula o estado do ativo. Quando uma condição crítica aparece, a ideia é abrir um incidente que possa ser acompanhado e resolvido pelo dashboard.
 
-- sensores de temperatura, vibração, corrente e produção;
-- Arduino/ESP32 por gateway serial;
-- webhooks de GitHub e aplicações;
-- métricas e health checks;
-- integrações futuras com e-mail, mensageria e ferramentas corporativas.
+## O que já está no repositório
 
-## Arquitetura
+- API em NestJS/TypeScript;
+- dashboard em Next.js;
+- gateway separado para entrada serial/HTTP;
+- contratos compartilhados entre as aplicações;
+- PostgreSQL + Prisma na base de dados;
+- agregação de telemetria por janela de tempo;
+- detector estatístico de anomalias como experimento local;
+- Docker Compose para o ambiente de desenvolvimento;
+- uma fundação de Terraform/AWS mantida separada do fluxo local.
+
+A parte de cloud e o detector de anomalias não são tratados como requisitos para o sistema funcionar. Quero primeiro deixar o caminho local de telemetria → incidente bem resolvido.
+
+## Estrutura
 
 ```text
 apps/
-  api/          NestJS, domínio, ingestão, data pipeline e analytics
-  web/          dashboard Next.js
-  gateway/      ponte serial/HTTP para Arduino e sensores
+├── api/          # backend, telemetria, incidentes e análise
+├── gateway/      # entrada serial/HTTP
+└── web/          # dashboard
+
 packages/
-  contracts/    contratos e tipos compartilhados
+└── contracts/    # tipos e contratos compartilhados
+
 infra/
-  terraform/    fundação AWS como Infrastructure as Code
-docs/           produto, arquitetura, decisões técnicas e cloud/data/ML
+└── terraform/    # experimentos de infraestrutura AWS
+
+docs/             # notas de arquitetura e produto
 ```
 
-### Tecnologias
+## Pontos do código
 
-- **Frontend:** Next.js + TypeScript;
-- **Backend:** NestJS + TypeScript;
-- **Dados operacionais:** PostgreSQL + Prisma;
-- **Processamento assíncrono:** Redis/filas como evolução arquitetural;
-- **Tempo real:** WebSocket/SSE;
-- **Containers:** Docker Compose;
-- **Observabilidade:** OpenTelemetry, logs estruturados e métricas;
-- **Data Engineering:** agregação temporal e pipeline de telemetria;
-- **ML/analytics:** detector de anomalias treinável e explicável;
-- **Cloud:** Terraform + AWS foundation;
-- **Qualidade:** testes unitários, integração, E2E e CI.
+Algumas partes que representam melhor a direção atual:
 
-## Data Engineering
+- `apps/api/src/data/window-aggregator.ts` — agrupa leituras por ativo e janela;
+- `apps/api/src/analytics/anomaly-detector.ts` — baseline estatístico simples e treinável;
+- `apps/gateway/` — fronteira entre fonte física/simulada e API;
+- `packages/contracts/` — dados compartilhados sem duplicar tipos entre aplicações.
 
-`apps/api/src/data/window-aggregator.ts` implementa uma primeira primitive executável de processamento de telemetria. Ela agrupa eventos por ativo e janela de tempo e produz médias/máximas para análise posterior.
+## Stack
 
-A arquitetura permite evoluir de processamento local para Redis Streams, Kafka, SQS/Kinesis ou outra infraestrutura distribuída sem mudar o contrato central do domínio.
-
-## Machine Learning / Anomaly Detection
-
-`apps/api/src/analytics/anomaly-detector.ts` adiciona um modelo estatístico pequeno e treinável. A partir de telemetria considerada saudável, ele aprende baseline de temperatura, vibração e corrente e calcula um score ponderado de anomalia.
-
-```text
-baseline saudável -> treino -> modelo -> nova telemetria -> score -> possível incidente
-```
-
-O objetivo é ter um baseline transparente e testável antes de experimentar modelos mais pesados.
-
-## Cloud / AWS
-
-`infra/terraform/` adiciona Infrastructure as Code real para uma fundação AWS com:
-
-- ECR para imagens da API e web;
-- image scanning;
-- S3 criptografado para arquivo de telemetria;
-- bloqueio de acesso público;
-- lifecycle de armazenamento histórico;
-- CloudWatch para logs da API e workers.
-
-Terraform **não é aplicado automaticamente**. Executar `terraform apply` pode criar recursos cobrados pela AWS. O desenho completo está em [`docs/CLOUD_DATA_ML.md`](docs/CLOUD_DATA_ML.md).
-
-## Domínios do produto
-
-| Domínio | Responsabilidade |
+| Parte | Tecnologia |
 |---|---|
-| Telemetry | Receber, validar e armazenar sinais |
-| Data Pipeline | Agregar, transformar e preparar séries temporais |
-| Analytics | Baselines, scores e detecção de anomalia |
-| Assets | Representar serviços, máquinas e componentes |
-| Rules | Avaliar limiares, correlações e janelas |
-| Incidents | Prioridade, estado, responsável e timeline |
-| Automations | Executar respostas configuráveis e auditáveis |
-| Integrations | Webhooks, APIs e conectores |
-| Identity | Organizações, equipes, papéis e permissões |
-| Audit | Registrar decisões e mudanças críticas |
+| Web | Next.js + TypeScript |
+| API | NestJS + TypeScript |
+| Banco | PostgreSQL + Prisma |
+| Gateway | TypeScript |
+| Tempo real | WebSocket / SSE |
+| Ambiente local | Docker Compose |
+| Observabilidade | OpenTelemetry |
+| Infra experimental | Terraform / AWS |
 
-## Vertical slice
+## Rodando localmente
 
-A primeira entrega deve demonstrar um fluxo completo:
+Requisitos:
 
-1. gateway gera ou recebe temperatura, vibração e corrente;
-2. API normaliza a telemetria;
-3. pipeline agrega sinais por janela;
-4. regra calcula o índice de saúde do ativo;
-5. detector treinável pode gerar um score de anomalia;
-6. condição crítica abre um incidente automaticamente;
-7. dashboard atualiza em tempo real;
-8. usuário assume e resolve o incidente;
-9. timeline preserva todo o histórico.
+- Node.js 22+
+- npm 10+
+- Docker, caso queira subir os serviços auxiliares pelo Compose
 
-O índice inicial mantém a ideia validada no SVI:
-
-```text
-Saúde = temperatura (30%) + vibração (40%) + corrente (30%)
+```bash
+npm install
+npm run check
+npm run build
 ```
 
-Os componentes são normalizados antes do cálculo; pesos poderão ser configurados posteriormente.
+Durante o desenvolvimento também é possível iniciar cada workspace separadamente:
 
-## Diferenciais de engenharia
+```bash
+npm run dev:api
+npm run dev:web
+npm run dev:gateway
+```
 
-- **Full-stack real:** dashboard, API e gateway;
-- **arquitetura orientada a eventos:** preparada para filas e workers;
-- **dados:** telemetria temporal, agregação e histórico;
-- **analytics/ML:** modelo treinável conectado ao domínio operacional;
-- **cloud:** infraestrutura declarativa em Terraform;
-- **observabilidade:** métricas, logs e tracing como parte do produto;
-- **integração físico-digital:** sensores e software no mesmo fluxo.
+## Próximo passo
 
-## Identidade
+O foco imediato é uma única demonstração completa e pequena:
 
-- **Nome:** SincroHub
-- **Nome completo:** Sistema Integrado de Operações e Monitoramento
-- **Conceito:** sincronizar dados, ativos, sistemas e respostas em um hub operacional único
-- **Tom:** técnico, industrial, preciso e apresentável
-- **Direção visual:** interface operacional escura, legível e orientada a estado, telemetria e incidentes
+1. gerar/receber telemetria;
+2. salvar e agregar as leituras;
+3. calcular o estado do ativo;
+4. abrir um incidente quando uma regra for atingida;
+5. atualizar o dashboard;
+6. assumir e resolver o incidente;
+7. preservar a timeline.
 
-Veja [`docs/PRODUCT.md`](docs/PRODUCT.md), [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/ROADMAP.md`](docs/ROADMAP.md) e [`docs/CLOUD_DATA_ML.md`](docs/CLOUD_DATA_ML.md).
+Se esse fluxo estiver bom, aí faz sentido evoluir filas, workers, cloud e análises mais sofisticadas.
 
-## Status
+## Sobre o nome
 
-**v0.1 — foundation expandida**
+`SyncHub` é um projeto anterior focado em sincronização de desenvolvimento/GitHub. **SincroHub é outro projeto**, voltado a operações e monitoramento. Algumas ideias de integração vieram do projeto antigo, mas os dois repositórios têm objetivos diferentes.
 
-A base do monorepo, contratos do domínio e simulador continuam em construção. Cloud, data engineering e analytics foram adicionados como fundações incrementais; o objetivo imediato segue sendo uma vertical slice executável antes de expandir infraestrutura de produção.
+## Documentação
+
+Mais detalhes ficam em [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) e [`docs/PRODUCT.md`](docs/PRODUCT.md).
 
 ## Licença
 
