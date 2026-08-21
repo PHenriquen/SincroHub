@@ -11,6 +11,7 @@ import {
   WindowAggregator,
   type TelemetrySample
 } from "../data/window-aggregator";
+import { IncidentRecoveryGate } from "./incident-recovery-gate";
 
 const clamp = (value: number) => Math.min(100, Math.max(0, value));
 const MAX_ANALYTICS_SAMPLES = 1_000;
@@ -24,7 +25,7 @@ export class TelemetryService {
   private readonly analyticsSamples = new Map<string, TelemetrySample[]>();
   private readonly anomalyDetectors = new Map<string, AnomalyDetector>();
   private readonly latestAnomalies = new Map<string, AnomalyResult>();
-  private readonly recoveryStreaks = new Map<string, number>();
+  private readonly recoveryGate = new IncidentRecoveryGate(RECOVERY_SAMPLES_REQUIRED);
   private readonly aggregator = new WindowAggregator(60_000);
 
   ingest(reading: TelemetryReading): AssetHealth {
@@ -80,7 +81,7 @@ export class TelemetryService {
     );
 
     if (health.status === "critical") {
-      this.recoveryStreaks.delete(health.assetId);
+      this.recoveryGate.reset(health.assetId);
 
       if (active) {
         active.healthScore = Math.min(active.healthScore, health.score);
@@ -105,29 +106,25 @@ export class TelemetryService {
     }
 
     if (!active) {
-      this.recoveryStreaks.delete(health.assetId);
+      this.recoveryGate.reset(health.assetId);
       return;
     }
 
     active.lastObservedAt = health.evaluatedAt;
+    const recovery = this.recoveryGate.observe(health.assetId, health.status);
 
-    if (health.status !== "healthy") {
-      this.recoveryStreaks.delete(health.assetId);
+    if (recovery.streak === 0) {
       delete active.recoveringSince;
       return;
     }
 
-    const nextStreak = (this.recoveryStreaks.get(health.assetId) ?? 0) + 1;
-    this.recoveryStreaks.set(health.assetId, nextStreak);
     active.recoveringSince ??= health.evaluatedAt;
-
-    if (nextStreak < RECOVERY_SAMPLES_REQUIRED) {
+    if (!recovery.resolved) {
       return;
     }
 
     active.status = "resolved";
     active.resolvedAt = health.evaluatedAt;
-    this.recoveryStreaks.delete(health.assetId);
   }
 
   private recordAnalytics(reading: TelemetryReading): void {
