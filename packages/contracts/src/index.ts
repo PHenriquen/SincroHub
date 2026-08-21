@@ -31,4 +31,8 @@ export interface Incident {
   status: "open" | "acknowledged" | "resolved";
   healthScore: number;
   openedAt: string;
+  lastObservedAt: string;
+  occurrenceCount: number;
+  recoveringSince?: string;
+  resolvedAt?: string;
 }

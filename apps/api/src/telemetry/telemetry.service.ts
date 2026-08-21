@@ -11,10 +11,12 @@ import {
   WindowAggregator,
   type TelemetrySample
 } from "../data/window-aggregator";
+import { IncidentRecoveryGate } from "./incident-recovery-gate";
 
 const clamp = (value: number) => Math.min(100, Math.max(0, value));
 const MAX_ANALYTICS_SAMPLES = 1_000;
 const BASELINE_SAMPLES = 10;
+const RECOVERY_SAMPLES_REQUIRED = 3;
 
 @Injectable()
 export class TelemetryService {
@@ -23,6 +25,7 @@ export class TelemetryService {
   private readonly analyticsSamples = new Map<string, TelemetrySample[]>();
   private readonly anomalyDetectors = new Map<string, AnomalyDetector>();
   private readonly latestAnomalies = new Map<string, AnomalyResult>();
+  private readonly recoveryGate = new IncidentRecoveryGate(RECOVERY_SAMPLES_REQUIRED);
   private readonly aggregator = new WindowAggregator(60_000);
 
   ingest(reading: TelemetryReading): AssetHealth {
@@ -40,22 +43,7 @@ export class TelemetryService {
 
     this.assets.set(reading.assetId, health);
     this.recordAnalytics(reading);
-
-    const alreadyOpen = this.incidents.some(
-      (incident) => incident.assetId === reading.assetId && incident.status !== "resolved"
-    );
-
-    if (status === "critical" && !alreadyOpen) {
-      this.incidents.unshift({
-        id: randomUUID(),
-        assetId: reading.assetId,
-        title: `Saúde crítica detectada em ${reading.assetId}`,
-        severity: "critical",
-        status: "open",
-        healthScore: score,
-        openedAt: health.evaluatedAt
-      });
-    }
+    this.updateIncidentLifecycle(health);
 
     return health;
   }
@@ -85,6 +73,58 @@ export class TelemetryService {
 
   listIncidents(): Incident[] {
     return this.incidents;
+  }
+
+  private updateIncidentLifecycle(health: AssetHealth): void {
+    const active = this.incidents.find(
+      (incident) => incident.assetId === health.assetId && incident.status !== "resolved"
+    );
+
+    if (health.status === "critical") {
+      this.recoveryGate.reset(health.assetId);
+
+      if (active) {
+        active.healthScore = Math.min(active.healthScore, health.score);
+        active.lastObservedAt = health.evaluatedAt;
+        active.occurrenceCount += 1;
+        delete active.recoveringSince;
+        return;
+      }
+
+      this.incidents.unshift({
+        id: randomUUID(),
+        assetId: health.assetId,
+        title: `Saúde crítica detectada em ${health.assetId}`,
+        severity: "critical",
+        status: "open",
+        healthScore: health.score,
+        openedAt: health.evaluatedAt,
+        lastObservedAt: health.evaluatedAt,
+        occurrenceCount: 1
+      });
+      return;
+    }
+
+    if (!active) {
+      this.recoveryGate.reset(health.assetId);
+      return;
+    }
+
+    active.lastObservedAt = health.evaluatedAt;
+    const recovery = this.recoveryGate.observe(health.assetId, health.status);
+
+    if (recovery.streak === 0) {
+      delete active.recoveringSince;
+      return;
+    }
+
+    active.recoveringSince ??= health.evaluatedAt;
+    if (!recovery.resolved) {
+      return;
+    }
+
+    active.status = "resolved";
+    active.resolvedAt = health.evaluatedAt;
   }
 
   private recordAnalytics(reading: TelemetryReading): void {

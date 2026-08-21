@@ -47,6 +47,9 @@ export default function OperationsHub() {
     return () => window.clearInterval(interval);
   }, []);
 
+  const activeIncidents = incidents.filter((incident) => incident.status !== "resolved");
+  const latestResolved = incidents.find((incident) => incident.status === "resolved");
+
   return (
     <main>
       <header>
@@ -87,13 +90,19 @@ export default function OperationsHub() {
         </article>
 
         <article>
-          <div className="cardTitle"><span>INCIDENTS</span><em>{incidents.length}</em></div>
-          {incidents.length === 0 ? (
-            <div className="empty"><b>NO ACTIVE INCIDENTS</b><span>Todos os sistemas estão dentro dos limites.</span></div>
-          ) : incidents.slice(0, 3).map((incident) => (
+          <div className="cardTitle"><span>ACTIVE INCIDENTS</span><em>{activeIncidents.length}</em></div>
+          {activeIncidents.length === 0 ? (
+            <div className="empty">
+              <b>NO ACTIVE INCIDENTS</b>
+              <span>{latestResolved ? `Último incidente resolvido · ${latestResolved.assetId}` : "Todos os sistemas estão dentro dos limites."}</span>
+            </div>
+          ) : activeIncidents.slice(0, 3).map((incident) => (
             <div className="incident" key={incident.id}>
               <b>{incident.title}</b>
-              <span>Health {incident.healthScore} · {incident.status}</span>
+              <span>
+                Health {incident.healthScore} · {incident.recoveringSince ? "recovering" : incident.status}
+                {incident.occurrenceCount > 1 ? ` · ${incident.occurrenceCount} ocorrências` : ""}
+              </span>
             </div>
           ))}
         </article>
