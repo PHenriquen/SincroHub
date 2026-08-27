@@ -25,6 +25,8 @@ export default function OperationsHub() {
   const [health, setHealth] = useState<AssetHealth>(initial);
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [connected, setConnected] = useState(false);
+  const [acknowledgingId, setAcknowledgingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     const refresh = async () => {
@@ -46,6 +48,28 @@ export default function OperationsHub() {
     const interval = window.setInterval(() => void refresh(), 2000);
     return () => window.clearInterval(interval);
   }, []);
+
+  const activeIncidents = incidents.filter((incident) => incident.status !== "resolved");
+  const latestResolved = incidents.find((incident) => incident.status === "resolved");
+
+  const acknowledge = async (incidentId: string) => {
+    setAcknowledgingId(incidentId);
+    setActionError(null);
+    try {
+      const response = await fetch(`${apiUrl}/incidents/${incidentId}/acknowledge`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ actor: "Operação local" })
+      });
+      if (!response.ok) throw new Error(`API returned ${response.status}`);
+      const updated: Incident = await response.json();
+      setIncidents((current) => current.map((incident) => incident.id === updated.id ? updated : incident));
+    } catch {
+      setActionError("Não foi possível assumir o incidente. Confira a conexão com a API.");
+    } finally {
+      setAcknowledgingId(null);
+    }
+  };
 
   return (
     <main>
@@ -87,15 +111,29 @@ export default function OperationsHub() {
         </article>
 
         <article>
-          <div className="cardTitle"><span>INCIDENTS</span><em>{incidents.length}</em></div>
-          {incidents.length === 0 ? (
-            <div className="empty"><b>NO ACTIVE INCIDENTS</b><span>Todos os sistemas estão dentro dos limites.</span></div>
-          ) : incidents.slice(0, 3).map((incident) => (
+          <div className="cardTitle"><span>ACTIVE INCIDENTS</span><em>{activeIncidents.length}</em></div>
+          {activeIncidents.length === 0 ? (
+            <div className="empty">
+              <b>NO ACTIVE INCIDENTS</b>
+              <span>{latestResolved ? `Último incidente resolvido · ${latestResolved.assetId}` : "Todos os sistemas estão dentro dos limites."}</span>
+            </div>
+          ) : activeIncidents.slice(0, 3).map((incident) => (
             <div className="incident" key={incident.id}>
-              <b>{incident.title}</b>
-              <span>Health {incident.healthScore} · {incident.status}</span>
+              <div>
+                <b>{incident.title}</b>
+                <span>
+                  Health {incident.healthScore} · {incident.recoveringSince ? "recovering" : incident.status}
+                  {incident.occurrenceCount > 1 ? ` · ${incident.occurrenceCount} ocorrências` : ""}
+                </span>
+              </div>
+              {incident.status === "open" ? (
+                <button onClick={() => void acknowledge(incident.id)} disabled={acknowledgingId === incident.id}>
+                  {acknowledgingId === incident.id ? "ASSUMINDO…" : "ASSUMIR"}
+                </button>
+              ) : <em>ASSUMIDO</em>}
             </div>
           ))}
+          {actionError ? <p className="actionError" role="alert">{actionError}</p> : null}
         </article>
 
         <article>

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
-import { telemetryReadingSchema } from "@sincrohub/contracts";
+import { acknowledgeIncidentSchema, telemetryReadingSchema } from "@sincrohub/contracts";
 import { TelemetryService } from "./telemetry.service";
 
 @Controller()
@@ -25,5 +25,11 @@ export class TelemetryController {
   @Get("incidents")
   incidents() {
     return this.telemetry.listIncidents();
+  }
+
+  @Post("incidents/:incidentId/acknowledge")
+  acknowledge(@Param("incidentId") incidentId: string, @Body() body: unknown) {
+    const command = acknowledgeIncidentSchema.parse(body);
+    return this.telemetry.acknowledgeIncident(incidentId, command.actor);
   }
 }
