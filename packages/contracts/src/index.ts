@@ -33,6 +33,14 @@ export interface Incident {
   openedAt: string;
   lastObservedAt: string;
   occurrenceCount: number;
+  acknowledgedAt?: string;
+  acknowledgedBy?: string;
   recoveringSince?: string;
   resolvedAt?: string;
 }
+
+export const acknowledgeIncidentSchema = z.object({
+  actor: z.string().trim().min(2).max(80)
+});
+
+export type AcknowledgeIncident = z.infer<typeof acknowledgeIncidentSchema>;

@@ -15,6 +15,8 @@ The recovery path now uses a small amount of hysteresis:
 5. three consecutive healthy readings resolve the incident;
 6. a later critical reading creates a new incident with a new id.
 
+An operator can acknowledge an active incident through `POST /api/v1/incidents/:id/acknowledge`. The incident records `acknowledgedAt` and `acknowledgedBy`; repeating the same command is idempotent, and a resolved episode cannot be acknowledged retroactively. Recovery remains signal-driven after acknowledgement.
+
 While recovering, the public status stays `open`/`acknowledged` for compatibility. `recoveringSince` exposes that the signal is improving without inventing a new API status before the UI is ready to represent it.
 
 ## Design references
@@ -39,6 +41,7 @@ Each incident now records:
 - `occurrenceCount`: number of critical observations folded into this episode;
 - `lastObservedAt`: last telemetry evaluation while the incident was active;
 - `recoveringSince`: first healthy evaluation in the current uninterrupted recovery streak;
+- `acknowledgedAt` and `acknowledgedBy`: who took operational ownership and when;
 - `resolvedAt`: time the recovery gate resolved the episode.
 
 This metadata is deliberately operational. It avoids storing a second copy of all telemetry inside the incident; the analytics stream remains the source for detailed sensor history.

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import type {
   AssetHealth,
   HealthStatus,
@@ -73,6 +73,24 @@ export class TelemetryService {
 
   listIncidents(): Incident[] {
     return this.incidents;
+  }
+
+  acknowledgeIncident(incidentId: string, actor: string): Incident {
+    const incident = this.incidents.find((item) => item.id === incidentId);
+    if (!incident) {
+      throw new NotFoundException(`Incident ${incidentId} not found`);
+    }
+    if (incident.status === "resolved") {
+      throw new ConflictException(`Incident ${incidentId} is already resolved`);
+    }
+    if (incident.status === "acknowledged") {
+      return incident;
+    }
+
+    incident.status = "acknowledged";
+    incident.acknowledgedAt = new Date().toISOString();
+    incident.acknowledgedBy = actor.trim();
+    return incident;
   }
 
   private updateIncidentLifecycle(health: AssetHealth): void {

@@ -72,8 +72,15 @@ article.wide { grid-column: 1 / -1; }
 .empty { height: 120px; display: grid; place-content: center; text-align: center; gap: 8px; }
 .empty b { font: 700 11px ui-monospace, monospace; letter-spacing: .1em; }
 .empty span, .incident span { color: var(--muted); font-size: 12px; }
-.incident { display: grid; gap: 6px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.incident { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.incident > div { display: grid; gap: 6px; }
 .incident b { font-size: 13px; }
+.incident button { flex: 0 0 auto; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; color: var(--cyan); background: rgba(93,220,255,.06); font: 700 9px ui-monospace, monospace; letter-spacing: .12em; cursor: pointer; }
+.incident button:hover { background: rgba(93,220,255,.12); border-color: rgba(93,220,255,.35); }
+.incident button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.incident button:disabled { cursor: wait; opacity: .55; }
+.incident em { color: #41e39b; font: 700 9px ui-monospace, monospace; letter-spacing: .12em; font-style: normal; }
+.actionError { margin: 14px 0 0; color: #ff9aae; font-size: 11px; line-height: 1.5; }
 .log { padding: 8px 0 0; list-style: none; }
 .log li { padding: 11px 0; color: #b6c1d1; font-size: 12px; border-bottom: 1px solid var(--line); }
 .log time { display: inline-block; width: 48px; color: var(--cyan); font: 700 9px ui-monospace, monospace; }
